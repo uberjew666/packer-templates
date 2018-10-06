@@ -1,0 +1,94 @@
+{
+  "min_packer_version": "1.2.5",
+  "variables": {
+    "vagrant_user": "vagrant",
+    "vagrant_pass": "vagrant",
+    "vm_name": "template-ubuntu-16.04",
+    "cpu": "2",
+    "ram_size": "4096",
+    "disk_size": "15360",
+    "iso_url": "http://releases.ubuntu.com/16.04/ubuntu-16.04.5-server-amd64.iso",
+    "iso_checksum_type": "sha256",
+    "iso_checksum": "c94de1cc2e10160f325eb54638a5b5aa38f181d60ee33dae9578d96d932ee5f8"
+  },
+  "builders": [
+    {
+      "type": "vmware-iso",
+      "iso_url": "{{user `iso_url`}}",
+      "iso_checksum_type": "{{user `iso_checksum_type`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "headless": false,
+      "boot_wait": "10s",
+      "boot_command": [
+        "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "/install/vmlinuz<wait>",
+        " auto<wait>",
+        " file=/floppy/preseed.cfg<wait>",
+        " debian-installer=en_GB<wait>",
+        " hostname=ubuntu-xenial<wait>",
+        " console-setup/ask_detect=false<wait>",
+        " console-setup/layoutcode=us<wait>",
+        " console-setup/modelcode=pc105<wait>",
+        " debconf/frontend=noninteractive<wait>",
+        " fb=false<wait>",
+        " kbd-chooser/method=uk<wait>",
+        " keyboard-configuration/layout=gb<wait>",
+        " keyboard-configuration/variant=gb<wait>",
+        " locale=en_GB<wait>",
+        " grub-installer/bootdev=/dev/sda<wait>",
+        " noapic<wait>",
+        " initrd=/install/initrd.gz<wait>",
+        " -- <wait>",
+        "<enter><wait>"
+      ],
+
+      "communicator": "ssh",
+      "ssh_username": "{{user `vagrant_user`}}",
+      "ssh_password": "{{user `vagrant_pass`}}",	
+      "ssh_timeout" : "15m",
+
+      "shutdown_command": "echo '{{user `vagrant_pass`}}' | sudo -S -E shutdown -P now",
+      "guest_os_type": "ubuntu-64",
+      "version": 13,
+      "tools_upload_flavor": "linux",
+      "vm_name": "{{user `vm_name`}}",
+      "network": "nat",
+
+      "disk_size": "{{user `disk_size`}}",
+      "disk_type_id": "0",
+
+      "output_directory": "./output/{{user `vm_name`}}/vmware-iso",
+
+      "floppy_files": [
+          "./preseed_files/ubuntu_16.04/preseed.cfg"
+      ],
+
+      "vnc_bind_address": "127.0.0.1",
+      "vnc_disable_password": false,
+
+      "vmx_data": {
+        "memsize": "{{user `ram_size`}}",
+        "numvcpus": "{{user `cpu`}}",
+        "ethernet0.pciSlotNumber": "32"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "chmod +x {{ .Path }}; echo '{{user `vagrant_pass`}}' | sudo -S sh -c '{{ .Vars }} {{ .Path }}'",
+      "scripts": [
+        "./scripts/linux/update.sh",
+        "./scripts/linux/network.sh",
+        "./scripts/linux/specialise.sh",
+        "./scripts/linux/ifnames.sh",
+        "./scripts/linux/vagrant.sh",
+        "./scripts/linux/cleanup.sh"
+      ]
+    }
+  ],
+  "post-processors": []
+}

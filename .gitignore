@@ -1,0 +1,6 @@
+*.iso
+*.vmdk
+*.nvram
+*.vmsd
+*.vmx
+*.vmxf

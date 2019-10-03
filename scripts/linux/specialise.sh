@@ -40,3 +40,16 @@ if [ "$PACKER_BUILDER_TYPE" = "vmware-iso" ]; then
   # Disable Kernel module
   echo "blacklist i2c-piix4" >> /etc/modprobe.d/blacklist.conf
 fi
+
+if [ "$PACKER_BUILD_TYPE" = "virtualbox-iso" ]; then
+  echo "Installing Virtualbox Guest Additions"
+  mkdir /tmp/isomount
+  
+  # Mount ISO
+  mount -t iso9660 -o loop /root/VBoxGuestAdditions.iso /tmp/isomount
+  /tmp/isomount/VBoxLinuxAdditions.run
+  umount isomount
+  
+  # Cleanup files
+  rm -rf /tmp/isomount /root/VboxGuestAdditions.iso
+fi
